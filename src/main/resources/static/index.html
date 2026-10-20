@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Học từ vựng</title>
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+<body>
+    <h1>Thẻ từ vựng</h1>
+    <form id="create-form">
+        <p>
+            <label for="word">Từ:</label>
+            <input id="word" type="text" required maxlength="50">
+        </p>
+
+        <p>
+            <label for="meaning">Nghĩa:</label>
+            <input id="meaning" type="text" required maxlength="200">
+        </p>
+
+        <button id="save-button" type="submit" disabled>
+            Thêm thẻ
+        </button>
+        <button id="cancel-edit-button" type="button" hidden>
+    Hủy sửa
+</button>
+        <p id="create-message"></p>
+    </form>
+    <p>
+        <label for="keyword">Tìm từ:</label>
+        <input id="keyword" type="text" placeholder="Nhập một phần của từ">
+    </p>
+    <button id="load-button" type="button">Tìm / Tải danh sách</button>
+    <p id="message"></p>
+    <ul id="card-list"></ul>
+    <hr>
+    <h2>Ôn tập</h2>
+
+    <button id="question-button" type="button">Lấy câu hỏi</button>
+    <p id="question-text">Chưa có câu hỏi.</p>
+
+    <form id="answer-form">
+        <label for="answer">Nghĩa của từ:</label>
+        <input id="answer" type="text" required>
+
+        <button id="check-button" type="submit" disabled>
+            Kiểm tra
+        </button>
+    </form>
+
+    <p id="review-message"></p>
+
+
+    <script src="/app.js"></script>
+</body>
+
+</html>
