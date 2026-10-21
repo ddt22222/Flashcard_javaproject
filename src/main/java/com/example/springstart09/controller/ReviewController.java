@@ -8,6 +8,8 @@ import com.example.springstart09.service.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import com.example.springstart09.model.CreateFlashcardRequest;
+
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 
 import java.util.List;
@@ -95,6 +97,14 @@ public class ReviewController {
     @GetMapping("/random/question")
     public QuestionResponse getRandomQuestion() {
         return reviewService.getRandomQuestion();
+    }
+
+    @GetMapping("/page")
+    public Page<Flashcard> getCardsPage(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+
+        return reviewService.getCardsPage(page, size);
     }
 
 }

@@ -2,18 +2,22 @@ const loadButton = document.getElementById("load-button");
 const message = document.getElementById("message");
 const cardList = document.getElementById("card-list");
 const keywordInput = document.getElementById("keyword");
+const prevPageButton = document.getElementById("prev-page");
+const nextPageButton = document.getElementById("next-page");
 
+let currentPage = 0;
 async function loadCards() {
     loadButton.disabled = true;
     message.textContent = "Đang tải...";
     cardList.replaceChildren();
-
+    prevPageButton.disabled = true;
+    nextPageButton.disabled = true;
     try {
         const keyword = keywordInput.value.trim();
-
+        
         const url = keyword === ""
-            ? "/api/review"
-            : `/api/review/filter?keyword=${encodeURIComponent(keyword)}`;
+    ? `/api/review/page?page=${currentPage}&size=5`
+    : `/api/review/filter?keyword=${encodeURIComponent(keyword)}`;
 
         const response = await fetch(url);
 
@@ -21,8 +25,12 @@ async function loadCards() {
             throw new Error("Không tải được danh sách.");
         }
 
-        const cards = await response.json();
+        const data = await response.json();
 
+        const cards = keyword === ""
+            ? data.content  // If no keyword, use the content of the page
+            : data;   // If keyword is provided, use the filtered list directly
+            console.log(cards);
         for (const card of cards) {
             const item = document.createElement("li");
 
@@ -49,9 +57,16 @@ async function loadCards() {
             cardList.appendChild(item);
         }
 
-        message.textContent = cards.length === 0
-            ? "Chưa có thẻ nào."
-            : `Có ${cards.length} thẻ.`;
+        if (cards.length === 0) {
+            message.textContent = "Không có thẻ nào.";
+        } else if (keyword === "") {
+            message.textContent =
+                `Trang ${data.number + 1}/${data.totalPages} — Tổng ${data.totalElements} thẻ.`;
+                prevPageButton.disabled = data.first;
+                nextPageButton.disabled = data.last;
+        } else {
+            message.textContent = `Tìm thấy ${cards.length} thẻ.`;
+        }
     } catch (error) {
         message.textContent = "Không tải được dữ liệu. Hãy thử lại.";
     } finally {
@@ -60,6 +75,16 @@ async function loadCards() {
 }
 
 loadButton.addEventListener("click", loadCards);
+
+prevPageButton.addEventListener("click", async () => {
+    currentPage -= 1;
+    await loadCards();
+});
+
+nextPageButton.addEventListener("click", async () => {
+    currentPage += 1;
+    await loadCards();
+});
 
 const createForm = document.getElementById("create-form");
 const wordInput = document.getElementById("word");
@@ -76,8 +101,8 @@ async function createCard(event) {
     const isEditing = editingCardId !== null;
 
     const url = isEditing
-            ? `/api/review/${editingCardId}`
-            : "/api/review";
+        ? `/api/review/${editingCardId}`
+        : "/api/review";
 
     const method = isEditing ? "PUT" : "POST";
 
@@ -102,10 +127,10 @@ async function createCard(event) {
                 createMessage.textContent = "Từ này đã tồn tại.";
             } else if (response.status === 400) {
                 createMessage.textContent =
-                        "Dữ liệu chưa hợp lệ. Hãy kiểm tra từ và nghĩa.";
+                    "Dữ liệu chưa hợp lệ. Hãy kiểm tra từ và nghĩa.";
             } else if (response.status === 404) {
                 createMessage.textContent =
-                        "Thẻ không còn tồn tại. Hãy hủy sửa và tải lại danh sách.";
+                    "Thẻ không còn tồn tại. Hãy hủy sửa và tải lại danh sách.";
             } else {
                 createMessage.textContent = "Không lưu được thẻ.";
             }
@@ -116,9 +141,10 @@ async function createCard(event) {
         cancelEditing();
 
         createMessage.textContent = isEditing
-                ? "Đã cập nhật thẻ!"
-                : "Đã thêm thẻ!";
+            ? "Đã cập nhật thẻ!"
+            : "Đã thêm thẻ!";
 
+        currentPage = 0;
         await loadCards();
     } catch (error) {
         createMessage.textContent = "Không kết nối được đến server.";
@@ -148,6 +174,7 @@ async function deleteCard(id, button) {
             throw new Error("Không xóa được thẻ.");
         }
 
+        currentPage = 0;
         await loadCards();
     } catch (error) {
         message.textContent = "Không xóa được thẻ. Hãy thử lại.";
@@ -173,7 +200,15 @@ const answerForm = document.getElementById("answer-form");
 const answerInput = document.getElementById("answer");
 const checkButton = document.getElementById("check-button");
 const reviewMessage = document.getElementById("review-message");
+const reviewStats = document.getElementById("review-stats");
 
+let totalAnswers = Number(
+    localStorage.getItem("totalAnswers") ?? "0"
+);
+
+let correctAnswers = Number(
+    localStorage.getItem("correctAnswers") ?? "0"
+);
 let currentCardId = null;
 
 async function loadQuestion() {
@@ -247,6 +282,8 @@ async function checkAnswer(event) {
 
         const result = await response.json();
 
+        updateReviewStats(result.correct);
+
         reviewMessage.textContent = result.correct
             ? "Chính xác!"
             : "Chưa đúng. Hãy thử lại.";
@@ -284,3 +321,36 @@ function cancelEditing() {
 }
 
 cancelEditButton.addEventListener("click", cancelEditing);
+
+function updateReviewStats(correct) {
+    totalAnswers += 1;
+
+    if (correct) {
+        correctAnswers += 1;
+    }
+
+    localStorage.setItem("totalAnswers", String(totalAnswers));
+    localStorage.setItem("correctAnswers", String(correctAnswers));
+
+    renderReviewStats();
+}
+
+function renderReviewStats() {
+    reviewStats.textContent =
+        `Đã trả lời: ${totalAnswers} | Đúng: ${correctAnswers}`;
+}
+
+const resetStatsButton =
+    document.getElementById("reset-stats-button");
+
+function resetReviewStats() {
+    totalAnswers = 0;
+    correctAnswers = 0;
+
+    localStorage.setItem("totalAnswers", "0");
+    localStorage.setItem("correctAnswers", "0");
+
+    renderReviewStats();
+}
+
+resetStatsButton.addEventListener("click", resetReviewStats);

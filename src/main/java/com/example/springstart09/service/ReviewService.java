@@ -10,6 +10,9 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.springstart09.model.AnswerResult;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class ReviewService {
@@ -23,7 +26,6 @@ public class ReviewService {
     public List<Flashcard> getAllCards() { // method to get all flashcards
         return flashcardRepository.findAll();
     }
-
 
     public AnswerResult checkAnswer(long id, String answer) { // method to check if the answer is correct
         if (answer == null || answer.isBlank()) {
@@ -104,8 +106,12 @@ public class ReviewService {
                     "Từ khóa không được để trống");
         }
 
+        String normalizedKeyword = keyword.trim();
+
         return flashcardRepository
-                .findByWordContainingIgnoreCase(keyword.trim());
+                .findByWordContainingIgnoreCaseOrMeaningContainingIgnoreCase(
+                        normalizedKeyword,
+                        normalizedKeyword);
     }
 
     public Flashcard getRandomCard() {
@@ -141,5 +147,20 @@ public class ReviewService {
                         HttpStatus.NOT_FOUND,
                         "Không tìm thấy thẻ"));
     }
+
+    public Page<Flashcard> getCardsPage(int page, int size) {
+    if (page < 0 || size < 1 || size > 100) {
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Trang phải từ 0 và kích thước trang từ 1 đến 100");
+    }
+
+    PageRequest pageable = PageRequest.of(
+            page,
+            size,
+            Sort.by("id").ascending());
+
+    return flashcardRepository.findAll(pageable);
+}
 
 }

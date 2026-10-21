@@ -26,8 +26,8 @@
             Thêm thẻ
         </button>
         <button id="cancel-edit-button" type="button" hidden>
-    Hủy sửa
-</button>
+            Hủy sửa
+        </button>
         <p id="create-message"></p>
     </form>
     <p>
@@ -37,6 +37,8 @@
     <button id="load-button" type="button">Tìm / Tải danh sách</button>
     <p id="message"></p>
     <ul id="card-list"></ul>
+    <button id="prev-page" type="button" disabled>Trang trước</button>
+<button id="next-page" type="button" disabled>Trang sau</button>
     <hr>
     <h2>Ôn tập</h2>
 
@@ -53,8 +55,11 @@
     </form>
 
     <p id="review-message"></p>
+    <p id="review-stats">Đã trả lời: 0 | Đúng: 0 </p>
 
-
+    <button id="reset-stats-button" type="button">
+        Đặt lại thống kê
+    </button>
     <script src="/app.js"></script>
 </body>
 

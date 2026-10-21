@@ -18,4 +18,8 @@ public interface FlashcardRepository
 
     List<Flashcard> findByWordContainingIgnoreCase(String keyword);
 
+    List<Flashcard> findByWordContainingIgnoreCaseOrMeaningContainingIgnoreCase(
+        String wordKeyword,
+        String meaningKeyword);
+
 }
